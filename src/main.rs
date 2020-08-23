@@ -12,9 +12,10 @@ use gtk::DrawingArea;
 use cairo::Context;
 // use cairo::{Context, FontSlant, FontWeight};
 
-// fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> dyn Inhibit + 'static {
-fn my_draw_fn(_drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
-    cr.scale(100f64, 100f64);
+fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
+    let window_height = drawing_area.get_allocated_height() as f64;
+    let window_width = drawing_area.get_allocated_width() as f64;
+    cr.scale(window_width, window_height);
 
     cr.set_source_rgb(250.0 / 255.0, 224.0 / 255.0, 55.0 / 255.0);
     cr.paint();
