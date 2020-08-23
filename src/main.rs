@@ -12,13 +12,12 @@ use gtk::{Application};
 use cairo::{Context};
 // use cairo::{Context, FontSlant, FontWeight};
 
-fn build_ui(application: &gtk::Application, width: i32, height: i32) {
-    drawable(application, width.clone(), height.clone(), |_, cr| {
+fn build_ui(application: &gtk::Application) {
+    drawable(application, 500, 500, |_, cr| {
         // cr.set_dash(&[3., 2., 1.], 1.);
         // assert_eq!(cr.get_dash(), (vec![3., 2., 1.], 1.));
-        let map_size = 100.0;
 
-        cr.scale(width as f64 / map_size, height as f64 / map_size);
+        cr.scale(100f64, 100f64);
 
         cr.set_source_rgb(250.0 / 255.0, 224.0 / 255.0, 55.0 / 255.0);
         cr.paint();
@@ -93,7 +92,7 @@ fn main() {
     ).expect("failed to initialize GTK application");
 
     application.connect_activate(|app| {
-        build_ui(app, 500, 500);
+        build_ui(app);
 
         // let window = ApplicationWindow::new(app);
         // window.set_title("First GTK+ Program");
