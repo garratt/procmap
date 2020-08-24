@@ -12,6 +12,7 @@ rand = "0.6"
 #rand = { version = "0.6", features = ["small_rng"] }
 poisson = "0.10.1"
 nalgebra = "0.17"
+voronator = "0.1.0"
 
 [dependencies.gtk]
 version = "0.9.0"

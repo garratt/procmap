@@ -2,7 +2,7 @@ extern crate cairo;
 extern crate gio;
 extern crate gtk;
 // Voronoi crates:
-// extern crate voronator;
+extern crate voronator;
 extern crate rand;
 
 // use voronator::CentroidDiagram;
@@ -27,6 +27,12 @@ use gtk::DrawingArea;
 // use gtk::{Application, ApplicationWindow, Button};
 use cairo::Context;
 // use cairo::{Context, FontSlant, FontWeight};
+
+// fn get_poisson_disk_points(radius : f64) -> Vec<(f64, f64)> {
+
+
+
+
 
 fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
     let window_height = drawing_area.get_allocated_height() as f64;
@@ -77,6 +83,9 @@ fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
     let points_p =
     Builder::<_, na::Vector2<f64>>::with_radius(0.05, Type::Normal)
             .build(rng, algorithm::Bridson).generate();
+    let points_p2: Vec<(f64, f64)> = points_p.into_iter()
+            .map(|x| (x[0], x[1]))
+            .collect();
 
     for p in points {
       cr.arc(p.0, p.1, 0.01, 0.0, PI * 2.);
@@ -84,15 +93,28 @@ fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
     }
 
     cr.set_source_rgb(0.50, 0.0, 0.0);
-    for p in points_v {
+    for p in &points_v {
       cr.arc(p.0, p.1, 0.01, 0.0, PI * 2.);
       cr.fill();
     }
 
     cr.set_source_rgb(0.0, 0.50, 0.0);
-    for p in points_p {
-      cr.arc(p[0], p[1], 0.01, 0.0, PI * 2.);
+    for p in &points_p2 {
+      cr.arc(p.0, p.1, 0.01, 0.0, PI * 2.);
       cr.fill();
+    }
+
+
+    // Make voronoi diagram:
+    let diagram = voronator::VoronoiDiagram::from_tuple(&(0., 0.), &(1., 1.), &points_p2).unwrap();
+    for cell in diagram.cells {
+      if let Some(last) = cell.last() {
+        cr.move_to(last.x, last.y);
+      }
+      for pt in cell {
+        cr.line_to(pt.x, pt.y);
+      }
+      cr.stroke();
     }
 
     Inhibit(false)
