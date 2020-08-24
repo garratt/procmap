@@ -9,6 +9,15 @@ extern crate rand;
 use rand::prelude::*;
 use rand::distributions::Uniform;
 
+// poisson disk:
+extern crate poisson;
+// use rand::FromEntropy;
+// use rand::rngs::SmallRng;
+use poisson::{Builder, Type, algorithm};
+
+extern crate nalgebra as na;
+
+
 use gio::prelude::*;
 use gtk::prelude::*;
 use std::f64::consts::PI;
@@ -64,15 +73,11 @@ fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
         .map(|_| (rng.sample(&range1), rng.sample(&range2)))
         .collect();
 
-    // Draw dots
-    // for x in 1..10 {
-        // let x = x as f64 * 0.1;
-        // for y in 1..10 {
-            // let y = y as f64 * 0.1;
-            // cr.arc(x, y, 0.01, 0.0, PI * 2.);
-            // cr.fill();
-        // }
-    // }
+    // Generate points with poisson disk sampling:
+    let points_p =
+    Builder::<_, na::Vector2<f64>>::with_radius(0.05, Type::Normal)
+            .build(rng, algorithm::Bridson).generate();
+
     for p in points {
       cr.arc(p.0, p.1, 0.01, 0.0, PI * 2.);
       cr.fill();
@@ -81,6 +86,12 @@ fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
     cr.set_source_rgb(0.50, 0.0, 0.0);
     for p in points_v {
       cr.arc(p.0, p.1, 0.01, 0.0, PI * 2.);
+      cr.fill();
+    }
+
+    cr.set_source_rgb(0.0, 0.50, 0.0);
+    for p in points_p {
+      cr.arc(p[0], p[1], 0.01, 0.0, PI * 2.);
       cr.fill();
     }
 
