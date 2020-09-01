@@ -9,6 +9,7 @@ extern crate voronator;
 use rand::distributions::Uniform;
 use rand::prelude::*;
 use voronator::VoronoiDiagram;
+use voronator::delaunator::*;
 // use math::round;
 
 // poisson disk:
@@ -70,15 +71,56 @@ fn get_random_dots(radius: f64) -> Vec<(f64, f64)> {
     points
 }
 
+fn verify_neighbor(cells1 : &Vec<voronator::delaunator::Point>, cells2: &Vec<voronator::delaunator::Point>) -> bool {
+   for pt1 in cells1 {
+       for pt2 in cells2 {
+           if (pt1.x == pt2.x) && (pt1.y == pt2.y) {
+               return true;
+           }
+       }
+   }
+   false
+}
+
+fn is_edge(cell_index : usize, diagram: &voronator::VoronoiDiagram) -> bool {
+   if diagram.cells[cell_index].len() != diagram.neighbors[cell_index].len() {
+       return true;
+   }
+   // Check that neighbors are real
+   for n in &diagram.neighbors[cell_index] {
+       if !verify_neighbor(&diagram.cells[cell_index], &diagram.cells[n.clone()]) {
+           return true;
+       }
+   }
+   false
+}
+
+
 fn draw_voronoi(diagram: &voronator::VoronoiDiagram, cr: &Context) {
-    for cell in &diagram.cells {
+    for (i, cell) in diagram.cells.iter().enumerate() {
+        // if diagram.cells[i].len() == diagram.neighbors[i].len() {
+        if is_edge(i, &diagram) {
+           cr.set_source_rgb(0., 0., 1.0);
+        } else {
+           let center = &diagram.sites[i];
+           cr.set_source_rgb(center.x, center.y, 0.0);
+        // cr.set_source_rgb(0.0, 0.0, 0.0);
+        // for pt in &diagram.neighbors[i] {
+            // let n_center : &voronator::delaunator::Point = &diagram.sites[pt.clone()];
+            // cr.move_to(center.x, center.y);
+            // cr.line_to(n_center.x, n_center.y);
+            // cr.stroke()
+        // }
+        }
         if let Some(last) = cell.last() {
             cr.move_to(last.x, last.y);
         }
         for pt in cell {
             cr.line_to(pt.x, pt.y);
         }
-        cr.stroke();
+            // cr.stroke()
+        cr.stroke_preserve();
+        cr.fill();
     }
     for p in &diagram.sites {
         cr.arc(p.x, p.y, 0.001, 0.0, PI * 2.);
@@ -89,6 +131,7 @@ fn draw_voronoi(diagram: &voronator::VoronoiDiagram, cr: &Context) {
 fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
     let window_height = drawing_area.get_allocated_height() as f64;
     let window_width = drawing_area.get_allocated_width() as f64;
+    let grid_size = 0.03;
     cr.scale(window_width, window_height);
 
     cr.set_source_rgb(250.0 / 255.0, 224.0 / 255.0, 55.0 / 255.0);
@@ -96,22 +139,22 @@ fn my_draw_fn(drawing_area: &DrawingArea, cr: &Context) -> gtk::Inhibit {
 
     cr.set_line_width(0.001);
 
-    cr.set_source_rgb(0.0, 0.0, 0.0);
-    let points = get_uniform_grid(0.05);
-    for p in points {
-        cr.arc(p.0, p.1, 0.001, 0.0, PI * 2.);
-        cr.fill();
-    }
+    // cr.set_source_rgb(0.0, 0.0, 0.0);
+    // let points = get_uniform_grid(grid_size);
+    // for p in points {
+        // cr.arc(p.0, p.1, 0.001, 0.0, PI * 2.);
+        // cr.fill();
+    // }
 
-    cr.set_source_rgb(0.50, 0.0, 0.0);
-    let points_v = get_random_dots(0.05);
-    draw_voronoi(
-        &VoronoiDiagram::from_tuple(&(0., 0.), &(1., 1.), &points_v).unwrap(),
-        &cr,
-    );
+    // cr.set_source_rgb(0.50, 0.0, 0.0);
+    // let points_v = get_random_dots(grid_size);
+    // draw_voronoi(
+        // &VoronoiDiagram::from_tuple(&(0., 0.), &(1., 1.), &points_v).unwrap(),
+        // &cr,
+    // );
 
     cr.set_source_rgb(0.0, 0.50, 0.0);
-    let points_p2 = get_poisson_disk_points(0.05);
+    let points_p2 = get_poisson_disk_points(grid_size);
     draw_voronoi(
         &VoronoiDiagram::from_tuple(&(0., 0.), &(1., 1.), &points_p2).unwrap(),
         &cr,
